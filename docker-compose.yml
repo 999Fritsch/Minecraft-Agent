@@ -1,0 +1,16 @@
+services:
+  minecraft-agent:
+    build: .
+    # Mount the project directory so code changes are reflected immediately
+    # without rebuilding the image (node_modules and Python packages stay in
+    # the container because they are installed at build time, not in /app).
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # Load all variables from the .env file in the project root
+    env_file:
+      - .env
+    # Restart automatically unless explicitly stopped
+    restart: unless-stopped
+    # Default bridge networking is sufficient; expose no ports since the bot
+    # connects outbound to the Minecraft server.
