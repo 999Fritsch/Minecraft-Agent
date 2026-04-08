@@ -1,0 +1,18 @@
+{
+  "name": "mc-agent",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Minecraft bot controller for OpenClaw AI agent",
+  "main": "controller/index.js",
+  "scripts": {
+    "start": "node controller/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "mineflayer": "^4.23.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "vec3": "^0.1.10",
+    "ws": "^8.17.0"
+  }
+}
