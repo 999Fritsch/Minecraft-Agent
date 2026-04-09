@@ -4,12 +4,12 @@ services:
     ports:
       - "18789:18789"
     volumes:
-      - openclaw-data:/home/node/.openclaw
+      - ./openclaw-data:/home/node/.openclaw
       - ./skill/SKILL.docker.md:/home/node/.openclaw/skills/mc-agent/SKILL.md:ro
     restart: unless-stopped
 
   mc-agent:
-    build: .
+    image: mc-agent:latest
     env_file: .env
     environment:
       OPENCLAW_GATEWAY_URL: ws://openclaw:18789
@@ -19,6 +19,3 @@ services:
       - .:/app
       - /app/node_modules
     restart: unless-stopped
-
-volumes:
-  openclaw-data:
