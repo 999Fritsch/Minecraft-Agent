@@ -25,19 +25,71 @@ mc-agent/
 │   ├── eventQueue.js     ← Priority queue + debounce
 │   └── gatewayClient.js  ← WebSocket client to OpenClaw Gateway
 ├── skill/
-│   └── SKILL.md          ← OpenClaw skill definition
+│   ├── SKILL.md          ← OpenClaw skill definition (local setup)
+│   └── SKILL.docker.md   ← OpenClaw skill definition (Docker, uses service hostname)
 ├── .env.example
+├── Dockerfile
+├── docker-compose.yml
 └── package.json
 ```
 
-## Prerequisites
+## Setup — Docker Compose (recommended)
 
-- Node.js 22+
-- npm
-- [OpenClaw](https://www.npmjs.com/package/openclaw) installed globally
-- pm2 (optional, for process management)
+Runs OpenClaw and the mc-agent controller as two containers on the same network.
+No global npm installs needed.
 
-## Setup
+### 1. Clone and configure
+
+```bash
+git clone https://github.com/999Fritsch/Minecraft-Agent.git
+cd Minecraft-Agent
+cp .env.example .env
+```
+
+Edit `.env`:
+
+| Variable | Description |
+|---|---|
+| `MC_HOST` | Minecraft server IP |
+| `MC_PORT` | Minecraft server port (default: 25565) |
+| `MC_USERNAME` | Bot username |
+| `MC_VERSION` | Server version (e.g. `1.21.1`) |
+| `MC_CONTROLLER_TOKEN` | Bearer token for HTTP auth — set to any secret string |
+| `OPENCLAW_TOKEN` | See step 2 below |
+| `OPENCLAW_SESSION_KEY` | OpenClaw session key (default: `main`) |
+| `CONTROLLER_PORT` | HTTP port (default: 3001) |
+
+### 2. Get the OpenClaw token
+
+Start OpenClaw first and run onboard to generate a token:
+
+```bash
+docker compose up -d openclaw
+docker compose exec openclaw openclaw onboard
+```
+
+Copy the printed token into `.env` as `OPENCLAW_TOKEN`.
+
+### 3. Start both services
+
+```bash
+docker compose up -d
+```
+
+Check logs:
+
+```bash
+docker compose logs -f
+# look for: [gateway] Connected to OpenClaw gateway
+```
+
+### 4. Open the OpenClaw web UI
+
+Navigate to `http://<your-pi-ip>:18789` and start chatting with the agent.
+
+---
+
+## Setup — Manual (local Node.js)
 
 ### 1. Clone and install dependencies
 
@@ -53,18 +105,7 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your values:
-
-| Variable | Description |
-|---|---|
-| `MC_HOST` | Minecraft server IP |
-| `MC_PORT` | Minecraft server port (default: 25565) |
-| `MC_USERNAME` | Bot username |
-| `MC_VERSION` | Server version (e.g. `1.21.1`) |
-| `MC_CONTROLLER_TOKEN` | Bearer token for HTTP auth |
-| `OPENCLAW_TOKEN` | From `openclaw gateway --show-token` |
-| `OPENCLAW_SESSION_KEY` | OpenClaw session key (default: `main`) |
-| `CONTROLLER_PORT` | HTTP port (default: 3001) |
+Edit `.env` with your values (same variables as above). Leave `OPENCLAW_GATEWAY_URL` unset — it defaults to `ws://127.0.0.1:18789`.
 
 ### 3. Set up OpenClaw
 
@@ -185,6 +226,7 @@ curl -X POST \
 ## Notes
 
 - `MC_VERSION` must exactly match your Minecraft server version
-- The controller and OpenClaw gateway must run on the same machine
-- Do not expose ports 3001 or 18789 to the internet — use Tailscale for remote access
-- OpenClaw session key defaults to `main` — verify with `openclaw sessions list`
+- In Docker, the `OPENCLAW_GATEWAY_URL` is set automatically by `docker-compose.yml` — do not override it in `.env`
+- Port 3001 is internal to the Docker network; only port 18789 is exposed to the host
+- Do not expose port 18789 to the internet — use Tailscale for remote access
+- OpenClaw session key defaults to `main` — verify with `openclaw sessions list` (or `docker compose exec openclaw openclaw sessions list`)
