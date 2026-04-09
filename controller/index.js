@@ -182,14 +182,55 @@ function getBotState() {
   };
 }
 
+// Active SSE connections keyed by sessionId, used to send JSON-RPC responses back
+// to the client over the event stream (HTTP+SSE transport).
+const sseClients = new Map();
+
+// GET /mcp — establishes the SSE channel for HTTP+SSE transport.
+// Sends an "endpoint" event so the client knows where to POST requests.
+// Auth is skipped: no sensitive data flows through this stream (only
+// keepalive pings and JSON-RPC responses that the client already triggered).
+app.get('/mcp', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sessionId = Math.random().toString(36).slice(2);
+  sseClients.set(sessionId, res);
+
+  // Tell the client where to POST requests (HTTP+SSE transport handshake)
+  res.write(`event: endpoint\ndata: /mcp?sessionId=${sessionId}\n\n`);
+
+  const ping = setInterval(() => res.write(':ping\n\n'), 15000);
+  req.on('close', () => {
+    clearInterval(ping);
+    sseClients.delete(sessionId);
+  });
+});
+
 app.post('/mcp', authMiddleware, async (req, res) => {
   const { method, id, params } = req.body ?? {};
+  const sessionId = req.query.sessionId;
+  const sseRes = sessionId ? sseClients.get(sessionId) : null;
 
+  // For HTTP+SSE transport: send the response via the SSE stream; acknowledge POST with 202.
+  // For Streamable HTTP (no sessionId): respond directly in the HTTP body.
   function reply(result) {
-    res.json({ jsonrpc: '2.0', id, result });
+    const payload = { jsonrpc: '2.0', id, result };
+    if (sseRes) {
+      sseRes.write(`event: message\ndata: ${JSON.stringify(payload)}\n\n`);
+      return res.status(202).end();
+    }
+    res.json(payload);
   }
   function replyError(code, message) {
-    res.json({ jsonrpc: '2.0', id, error: { code, message } });
+    const payload = { jsonrpc: '2.0', id, error: { code, message } };
+    if (sseRes) {
+      sseRes.write(`event: message\ndata: ${JSON.stringify(payload)}\n\n`);
+      return res.status(202).end();
+    }
+    res.json(payload);
   }
 
   if (method === 'initialize') {
