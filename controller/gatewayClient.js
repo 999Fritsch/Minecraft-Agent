@@ -26,7 +26,12 @@ function createGatewayClient() {
         type: 'req',
         id: '1',
         method: 'connect',
-        params: { auth: { token: process.env.OPENCLAW_TOKEN ?? '' } },
+        params: {
+          auth: { token: process.env.OPENCLAW_TOKEN ?? '' },
+          minProtocol: 1,
+          maxProtocol: 1,
+          client: 'gateway-client',
+        },
       }));
     });
 
