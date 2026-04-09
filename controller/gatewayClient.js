@@ -28,9 +28,14 @@ function createGatewayClient() {
         method: 'connect',
         params: {
           auth: { token: process.env.OPENCLAW_TOKEN ?? '' },
-          minProtocol: 1,
-          maxProtocol: 1,
-          client: { name: 'mc-agent', version: '1.0.0' },
+          minProtocol: 3,
+          maxProtocol: 3,
+          client: {
+            id: 'node-host',
+            platform: 'linux',
+            mode: 'node',
+            version: '1.0.0',
+          },
         },
       }));
     });
