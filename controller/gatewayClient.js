@@ -3,7 +3,7 @@
 const WebSocket = require('ws');
 const crypto = require('crypto');
 
-const GATEWAY_URL = 'ws://127.0.0.1:18789';
+const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL ?? 'ws://127.0.0.1:18789';
 const RECONNECT_DELAY_MS = 3000;
 
 /**
