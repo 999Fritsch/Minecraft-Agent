@@ -18,4 +18,5 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - ./auth-cache:/app/auth-cache
     restart: unless-stopped

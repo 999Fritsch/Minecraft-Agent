@@ -74,3 +74,4 @@ The skill definition used inside Docker is `skill/SKILL.docker.md` (mounted into
 | `OPENCLAW_SESSION_KEY` | OpenClaw session key (default: `main`) |
 | `OPENCLAW_GATEWAY_URL` | Gateway WS URL (auto-set in Docker) |
 | `CONTROLLER_PORT` | HTTP port (default: 3001) |
+| `MC_AUTH` | Auth mode: `offline` (default) or `microsoft` |

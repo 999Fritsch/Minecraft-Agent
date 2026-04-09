@@ -23,11 +23,14 @@ function getBot() {
 }
 
 function createBot() {
+  const authMode = process.env.MC_AUTH ?? 'offline';
   const bot = mineflayer.createBot({
     host: process.env.MC_HOST,
     port: parseInt(process.env.MC_PORT ?? '25565', 10),
     username: process.env.MC_USERNAME ?? 'AgentBot',
     version: process.env.MC_VERSION ?? '1.21.1',
+    auth: authMode,
+    ...(authMode === 'microsoft' && { profilesFolder: '/app/auth-cache' }),
   });
 
   bot.once('spawn', () => {

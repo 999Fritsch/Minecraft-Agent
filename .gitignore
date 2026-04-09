@@ -86,6 +86,7 @@ celerybeat.pid
 
 # Environments
 .env
+auth-cache/
 .envrc
 .venv
 env/
