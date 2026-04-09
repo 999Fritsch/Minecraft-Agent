@@ -30,7 +30,7 @@ function createGatewayClient() {
           auth: { token: process.env.OPENCLAW_TOKEN ?? '' },
           minProtocol: 1,
           maxProtocol: 1,
-          client: 'gateway-client',
+          client: { name: 'mc-agent', version: '1.0.0' },
         },
       }));
     });
